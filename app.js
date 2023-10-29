@@ -39,27 +39,28 @@ const boards = document.querySelectorAll(".board")
 const bombsArray = generateBombsLocation()
 const numbersArray = generateNumbersLocation()
 
+// sounds
+const clickSound = document.querySelector(".click")
+const flagSound = document.querySelector(".flag-click")
+const bombSound = document.querySelector(".bomb-click")
+
 boards.forEach((board, index) => {
     // click
     board.addEventListener("click", () => {
         if (!timeIsRunning){
             timer()
         }
+        // click bomb
         if (bombsArray.includes(index)){
             clickOnBomb(index)
-            clearInterval(myInterval)
-            finish(false)
         }
+        // click
         else {
             checkBomb(index)
-            if (checkWin()){
-                clearInterval(myInterval)
-                finish(true)
-            }
         }
     })
 
-    // double click
+    // right click
     board.addEventListener("contextmenu", (e) => {
         e.preventDefault()
         putFlag(index)
@@ -156,6 +157,7 @@ function generateNumbersLocation(){
 
 // click on bomb
 function clickOnBomb(x){
+
     if (boards[x].querySelector("svg")){
         return
     }
@@ -179,6 +181,15 @@ function clickOnBomb(x){
             }
         }
     }, 500)
+
+    clickSound.play()
+
+    setTimeout(() => {
+        bombSound.play()
+    }, 500);
+
+    clearInterval(myInterval)
+    finish(false)
 }
 
 // put flag
@@ -198,12 +209,15 @@ function putFlag(x){
 
     if (boards[x].querySelector("svg")){
         boards[x].innerHTML = ""
+        flagSound.play()
     }
     else {
         if (parseInt(totalFlag.innerText) > 0){
             boards[x].innerHTML = flag
+            flagSound.play()
         }
     }
+
 
     checkFlag()
 }
@@ -224,9 +238,11 @@ function checkFlag(){
 
 // open box when there's no number in it
 function checkBomb(x){
-    if (boards[x].classList.contains("open") || boards[x].contains(document.querySelector("svg"))){
+    if (boards[x].classList.contains("open") || boards[x].querySelector("svg")){
         return
     }
+
+    clickSound.play()
     
     let bombsAround = numbersArray[x]
     boards[x].classList.add("open", `number${bombsAround}`)
@@ -298,6 +314,11 @@ function checkBomb(x){
     }
 
     checkFlag()
+
+    if (checkWin()){
+        clearInterval(myInterval)
+        finish(true)
+    }
 }
 
 // check win
