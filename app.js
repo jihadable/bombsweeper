@@ -56,7 +56,7 @@ boards.forEach((board, index) => {
         }
         // click
         else {
-            checkBomb(index)
+            checkBomb(index, true)
         }
     })
 
@@ -69,7 +69,7 @@ boards.forEach((board, index) => {
 
 // generate bombs location
 function generateBombsLocation() {
-    const bombsArray = [];
+    let bombsArray = [];
     while (bombsArray.length < 10){
         const randomLocation = Math.floor(Math.random() * 100);
         if (!bombsArray.includes(randomLocation)){
@@ -81,72 +81,32 @@ function generateBombsLocation() {
 
 // generate numbers location
 function generateNumbersLocation(){
-    let numbersArray = []
+    let numbersArray = Array(100).fill(-1)
 
-    for (let i = 0; i < 100; i++){
-        numbersArray.push(-1)
-    }
+    const rows = 10
+    const cols = 10
+
+    const directions = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],           [0, 1],
+        [1, -1], [1, 0], [1, 1]
+    ]
 
     for (let i = 0; i < 100; i++){
         let number = 0
 
-        for (let j = 0; j < 10; j++){
-            if (i == bombsArray[j]){
-                number = -1
-                break
-            }
-            else {
-                if (i == 0){
-                    if (bombsArray[j] == i + 1 || bombsArray[j] == i + 10 || bombsArray[j] == i + 11){
-                        number++
-                    }
-                }
-    
-                else if (i == 9){
-                    if (bombsArray[j] == i - 1 || bombsArray[j] == i + 9 || bombsArray[j] == i + 10){
-                        number++
-                    }
-                }
-    
-                else if (i == 90){
-                    if (bombsArray[j] == i - 10 || bombsArray[j] == i - 9 || bombsArray[j] == i + 1){
-                        number++
-                    }
-                }
-    
-                else if (i == 99){
-                    if (bombsArray[j] == i - 1 || bombsArray[j] == i - 11 || bombsArray[j] == i - 10){
-                        number++
-                    }
-                }
-    
-                else if (i % 10 == 0){
-                    if (bombsArray[j] == i - 10 || bombsArray[j] == i - 9 || bombsArray[j] == i + 1 || bombsArray[j] == i + 10 || bombsArray[j] == i + 11){
-                        number++
-                    }    
-                }
-    
-                else if (i >= 1 && i <= 8){
-                    if (bombsArray[j] == i - 1 || bombsArray[j] == i + 1 ||bombsArray[j] == i + 9 || bombsArray[j] == i + 10 || bombsArray[j] == i + 11){
-                        number++
-                    }
-                }
-    
-                else if (i % 10 == 9){
-                    if (bombsArray[j] == i - 11 || bombsArray[j] == i - 10 || bombsArray[j] == i - 1 || bombsArray[j] == i + 9 || bombsArray[j] == i + 10){
-                        number++
-                    }
-                }
-    
-                else if (i >= 91 && i <= 98){
-                    if (bombsArray[j] == i - 1 || bombsArray[j] == i + 1 || bombsArray[j] == i - 11 || bombsArray[j] == i - 10 || bombsArray[j] == i - 9){
-                        number++
-                    }
-                }
-    
-                else if ((bombsArray[j] == i - 1 || bombsArray[j] == i + 1 || bombsArray[j] == i - 11 || bombsArray[j] == i - 10 || bombsArray[j] == i - 9 || bombsArray[j] == i + 9 || bombsArray[j] == i + 10 || bombsArray[j] == i + 11) && bombsArray[j] != i){
-                    number++
-                }
+        if (bombsArray.includes(i)){
+            continue
+        }
+      
+        for (const [dr, dc] of directions){
+            const newRow = Math.floor(i / rows) + dr;
+            const newCol = (i % cols) + dc;
+            
+            const newBoard = newRow * rows + newCol;
+      
+            if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && bombsArray.includes(newBoard)) {
+                number++;
             }
         }
         numbersArray[i] = number
@@ -174,10 +134,10 @@ function clickOnBomb(x){
     boards[x].innerHTML = bomb
     
     setTimeout(() => {
-        for (let i = 0; i < 10; i ++){
-            if (i != x){
-                boards[bombsArray[i]].classList.add("open")
-                boards[bombsArray[i]].innerHTML = bomb
+        for (let bombLocation of bombsArray){
+            if (bombLocation != x){
+                boards[bombLocation].classList.add("open")
+                boards[bombLocation].innerHTML = bomb
             }
         }
     }, 500)
@@ -227,8 +187,8 @@ function checkFlag(){
     const totalFlag = document.querySelector(".flag > span")
 
     let flags = 0
-    for (let i = 0; i < 100; i++){
-        if (boards[i].querySelector(".icon-tabler-pennant")){
+    for (let board of boards){
+        if (board.querySelector(".icon-tabler-pennant")){
             flags++
         }
     }
@@ -236,9 +196,9 @@ function checkFlag(){
     totalFlag.innerText = 10 - flags
 }
 
-// open box when there's no number in it
-function checkBomb(x){
-    if (boards[x].classList.contains("open") || boards[x].querySelector("svg")){
+// open board
+function checkBomb(x, click){
+    if (boards[x].classList.contains("open") || (boards[x].querySelector("svg") && click)){
         return
     }
 
@@ -259,63 +219,29 @@ function checkBomb(x){
         return
     }
 
-    if (x == 0){
-        checkBomb(x+1)
-        checkBomb(x+10)
-        checkBomb(x+11)
+    const rows = 10
+    const cols = 10
+    const boardsAround = [];
+
+    const row = Math.floor(x / rows);
+    const col = x % cols;
+
+    for (let dr = -1; dr <= 1; dr++){
+        for (let dc = -1; dc <= 1; dc++){
+            const newRow = row + dr;
+            const newCol = col + dc;
+
+            if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+                const board = newRow * rows + newCol;
+                if (board != x){
+                    boardsAround.push(board);
+                }
+            }
+        }
     }
-    else if (x == 9){
-        checkBomb(x-1)
-        checkBomb(x+9)
-        checkBomb(x+10)
-    }
-    else if (x == 90){
-        checkBomb(x-10)
-        checkBomb(x-9)
-        checkBomb(x+1)
-    }
-    else if (x == 99){
-        checkBomb(x-11)
-        checkBomb(x-10)
-        checkBomb(x-1)
-    }
-    else if (x > 0 && x < 9){
-        checkBomb(x-1)
-        checkBomb(x+1)
-        checkBomb(x+9)
-        checkBomb(x+10)
-        checkBomb(x+11)
-    }
-    else if (x > 90 && x < 99){
-        checkBomb(x-1)
-        checkBomb(x+1)
-        checkBomb(x-9)
-        checkBomb(x-10)
-        checkBomb(x-11)
-    }
-    else if (x % 10 == 0){
-        checkBomb(x-10)
-        checkBomb(x-9)
-        checkBomb(x+1)
-        checkBomb(x+10)
-        checkBomb(x+11)
-    }
-    else if (x % 10 == 9){
-        checkBomb(x-11)
-        checkBomb(x-10)
-        checkBomb(x-1)
-        checkBomb(x+9)
-        checkBomb(x+10)
-    }
-    else {
-        checkBomb(x-11)
-        checkBomb(x-10)
-        checkBomb(x-9)
-        checkBomb(x-1)
-        checkBomb(x+1)
-        checkBomb(x+9)
-        checkBomb(x+10)
-        checkBomb(x+11)
+
+    for (const board of boardsAround){
+        checkBomb(board, false)
     }
 
     checkFlag()
@@ -325,8 +251,8 @@ function checkBomb(x){
 function checkWin(){
     let count = 0
 
-    for (let i = 0; i < 100; i++){
-        count += numbersArray[i]
+    for (let number of numbersArray){
+        count += number
     }
 
     return count == -10 ? true : false
