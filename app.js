@@ -250,6 +250,11 @@ function checkBomb(x){
 
     numbersArray[x] = 0
 
+    if (checkWin()){
+        clearInterval(myInterval)
+        finish(true)
+    }
+
     if (bombsAround > 0){
         return
     }
@@ -314,11 +319,6 @@ function checkBomb(x){
     }
 
     checkFlag()
-
-    if (checkWin()){
-        clearInterval(myInterval)
-        finish(true)
-    }
 }
 
 // check win
