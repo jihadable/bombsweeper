@@ -43,6 +43,7 @@ const numbersArray = generateNumbersLocation()
 const clickSound = document.querySelector(".click")
 const flagSound = document.querySelector(".flag-click")
 const bombSound = document.querySelector(".bomb-click")
+const winSound = document.querySelector(".win")
 
 boards.forEach((board, index) => {
     // click
@@ -213,6 +214,9 @@ function checkBomb(x, click){
     if (checkWin()){
         clearInterval(myInterval)
         finish(true)
+        setTimeout(() => {
+            winSound.play()
+        }, 1000);
     }
 
     if (bombsAround > 0){
