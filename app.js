@@ -1,9 +1,9 @@
 var out = console.log.bind(document)
 
 // unavailable in tablet or mobile
-if (window.matchMedia("screen and (max-width: 1023px)").matches){
-    document.body.innerHTML = `<div class="unavailable">This game is only available in laptop or desktop devices</div>`
-}
+// if (window.matchMedia("screen and (max-width: 1023px)").matches){
+//     document.body.innerHTML = `<div class="unavailable">This game is only available in laptop or desktop devices</div>`
+// }
 
 // generate grid
 const container = document.querySelector(".boards")
@@ -35,6 +35,7 @@ overlay.addEventListener("click", () => {
     }
 })
 
+let play = true
 const boards = document.querySelectorAll(".board")
 const bombsArray = generateBombsLocation()
 const numbersArray = generateNumbersLocation()
@@ -48,23 +49,29 @@ const winSound = document.querySelector(".win")
 boards.forEach((board, index) => {
     // click
     board.addEventListener("click", () => {
-        if (!timeIsRunning){
-            timer()
-        }
-        // click bomb
-        if (bombsArray.includes(index)){
-            clickOnBomb(index)
-        }
-        // click
-        else {
-            checkBomb(index, true)
+        console.log(play)
+        if (play){
+            if (!timeIsRunning){
+                timer()
+            }
+            // click bomb
+            if (bombsArray.includes(index)){
+                play = false
+                clickOnBomb(index)
+            }
+            // click
+            else {
+                checkBomb(index, true)
+            }
         }
     })
 
     // right click
     board.addEventListener("contextmenu", (e) => {
-        e.preventDefault()
-        putFlag(index)
+        if (play){
+            e.preventDefault()
+            putFlag(index)
+        }
     })
 })
 
@@ -212,11 +219,13 @@ function checkBomb(x, click){
     numbersArray[x] = 0
 
     if (checkWin()){
+        play = false
         clearInterval(myInterval)
         finish(true)
         setTimeout(() => {
             winSound.play()
         }, 1000);
+        return
     }
 
     if (bombsAround > 0){
@@ -288,6 +297,7 @@ function timer(){
 
 // finish
 function finish(status){
+
     setTimeout(() => {
         overlay.classList.add("active")
         document.querySelector(".score").classList.add("active")
