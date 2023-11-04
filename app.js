@@ -1,9 +1,9 @@
 var out = console.log.bind(document)
 
 // unavailable in tablet or mobile
-// if (window.matchMedia("screen and (max-width: 1023px)").matches){
-//     document.body.innerHTML = `<div class="unavailable">This game is only available in laptop or desktop devices</div>`
-// }
+if (window.matchMedia("screen and (max-width: 1023px)").matches){
+    document.body.innerHTML = `<div class="unavailable">This game is only available in laptop or desktop devices</div>`
+}
 
 // generate grid
 const container = document.querySelector(".boards")
